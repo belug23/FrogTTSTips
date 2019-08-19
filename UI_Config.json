@@ -40,6 +40,13 @@
       "tooltip": "Set the volume power for the playing sounds.",
       "group": "General"
   },
+  "costs": {
+      "type": "numberbox",
+      "value": 100,
+      "label": "Cost to play a sound",
+      "tooltip": "Set the cost for this command.",
+      "group": "General"
+  },
   "useCooldown": {
       "type": "checkbox",
       "value": true,

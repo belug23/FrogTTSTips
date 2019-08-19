@@ -1,6 +1,5 @@
 import clr # pylint: disable=all; noqa .net system
 import codecs
-import ctypes
 import json
 import os
 import sys
@@ -103,6 +102,7 @@ class FrogTipsReader(object):
                 "command": "!FrogTTSTips",
                 "permission": "Everyone",
                 "volume": 50.0,
+			    "costs": 100,
                 "useCooldown": True,
                 "useCooldownMessages": True,
                 "cooldown": 60,
@@ -124,9 +124,10 @@ class FrogTipsReader(object):
         """
         # If it's from chat and the live setting correspond to the live status
         if self.canParseData(data):
-            # If it's the defined help command
-            if data.GetParam(0).lower() == self.settings["command"].lower():
-                return self.playFrogTips(data)
+            command = self.settings["command"].lower()
+            if data.GetParam(0).lower() == command:
+                if self.hasPoints(data) and not self.isOnCoolDown(data, command):
+                    return self.playFrogTips(data)
         return
     
     def canParseData(self, data):
@@ -137,6 +138,10 @@ class FrogTipsReader(object):
                 (not self.settings["liveOnly"])
             )
         )
+    
+    def hasPoints(self, data):
+        points = self.parent.GetPoints(data.User)
+        return (point > self.settings['cost'])
     
     def isOnCoolDown(self, data, command):
         if (
