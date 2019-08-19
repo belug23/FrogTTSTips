@@ -1,12 +1,15 @@
-import clr
+import clr # pylint: disable=all; noqa .net system
 import codecs
 import ctypes
 import json
 import os
 import sys
+import uuid
+import urllib2
+import base64
 
 clr.AddReference('System.Speech')
-from System.Speech.Synthesis import SpeechSynthesizer #  noqa .net system
+from System.Speech.Synthesis import SpeechSynthesizer # pylint: disable=all; noqa .net system
 
 
 class FrogTipsReader(object):
@@ -21,16 +24,17 @@ class FrogTipsReader(object):
 
     def __init__(self):
         self.base_path = os.path.dirname(__file__)
-        self.credential_file = "credential.txt"
-        self.credential_file_path = os.path.join(self.base_path, self.credential_file)
-        self.tips_file = "tips.txt"
-        self.tips_file_path = os.path.join(self.base_path, self.tips_file)
+        # self.credential_file = "credential.txt"
+        # self.credential_file_path = os.path.join(self.base_path, self.credential_file)
+        # self.tips_file = "tips.txt"
+        # self.tips_file_path = os.path.join(self.base_path, self.tips_file)
         self.settings = {}
-        self.allowedUsers = []
-        self.commands = []
         self.volume = 0.5
         self.parent = None
         self.spk = SpeechSynthesizer()
+        self.uuid = str(uuid.uuid4())
+        self.phrase = ''
+        self.tips = []
 
     def setParent(self, parent):
         self.parent = parent
@@ -42,43 +46,48 @@ class FrogTipsReader(object):
         self.volume = self.settings["volume"] / 100.0
 
         self.setupCredentials()
-        self.loadTips()
 
     def setupCredentials(self):
-        if not Path(self.credential_file_path).is_file():
-            self.init_credentials_file()
-            self.register()
+        # Make this persistant
+        self.register()
+    
+    def get_auth_data(self):
+        return json.dumps({
+            'uuid': self.uuid,
+            'comment':  '{} {}'.format(
+                self.application_name,
+                self.version
+            )
+        })
  
     def register(self):
-        """Register with the API server in order to create an API key.
-        Registers the uuid and user name with the API server in order to
-        create an API key. Unless force_registration is set to True, will
-        return immediately if there's already a secret phrase populated in
-        self.phrase (indicating a complete API key),  Saves the key to disk
-        upon successful completion."""
-
         # Prepare request
         url = 'https://' + self.settings['frogTipsDomain'] + '/api/3/auth'
-        http_headers = {'Content-type': 'application/json',
+        headers = {'Content-type': 'application/json',
                         'Accept': 'application/json'}
+        data = self.get_auth_data()
 
         # Post request
-        response = requests.post(url=url,
-                            data=self.serialize(),
-                            headers=http_headers)
-
+        req = urllib2.Request(url, data, headers)
+        r = urllib2.urlopen(req)
+        
         # Decode and save API key
-        self.set_phrase(response.json()['phrase'])
-        self.save_credentials()
-
-    def init_credentials_file(self):
-        """Create credentials file and/or wipe the existing one clean."""
-        try:
-            file = open(self.settings['frogTipsDomain'], 'w')
-        except OSError:
-            sys.exit("Couldn't create file %s" % self.settings['frogTipsDomain'])
-        file.write('::')
-        file.close()
+        response = json.loads(r.read())
+        self.phrase = response['phrase']
+    
+    def get_http_auth(self):
+        return base64.standard_b64encode('{}:{}'.format(self.uuid, self.phrase))
+    
+    def download_tips(self):
+        url = 'https://' + self.settings['frogTipsDomain'] + '/api/3/tips'
+        headers = {
+            'Content-type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Basic {}'.format(self.get_http_auth()),
+        }
+        req = urllib2.Request(url, headers=headers)
+        r = urllib2.urlopen(req)
+        self.tips = json.loads(r.read())
 
     def loadSettings(self):
         """
@@ -154,20 +163,12 @@ class FrogTipsReader(object):
             
             cd = str(cdi / 60) + ":" + str(cdi % 60).zfill(2) 
             self.sendMessage(data, message, command=command, cd=cd)
-        
-
-    def helpMessage(self, data):
-        # If it's still on cool down
-        if not self.isOnCoolDown(data, self.settings["command"]) and self.parent.HasPermission(data.User, self.settings["permission"], ""):
-            if data.UserName.lower() in self.allowedUsers:
-                self.sendMessage(data, self.settings["permitedResponse"])
-            else:
-                self.sendMessage(data, self.settings["notPermitedResponse"])
-            
-            self.setCoolDown(data, self.settings["command"])
     
     def playFrogTips(self, data):
-        self.spk.Speak('Hello world!')
+        if not self.tips:
+            self.download_tips()
+        tip = self.tips.pop()
+        self.spk.Speak(tip['tip'])
         self.setCoolDown(data)
 
     def setCoolDown(self, data, command):
