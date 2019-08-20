@@ -4,7 +4,6 @@ import json
 import os
 import sys
 import uuid
-import urllib2
 import base64
 
 clr.AddReference('System.Speech')
@@ -67,11 +66,9 @@ class FrogTipsReader(object):
         data = self.get_auth_data()
 
         # Post request
-        req = urllib2.Request(url, data, headers)
-        r = urllib2.urlopen(req)
-        
+        result = Parent.PostRequest(url,headers,data,true)
         # Decode and save API key
-        response = json.loads(r.read())
+        response = json.loads(result)
         self.phrase = response['phrase']
     
     def get_http_auth(self):
@@ -84,9 +81,8 @@ class FrogTipsReader(object):
             'Accept': 'application/json',
             'Authorization': 'Basic {}'.format(self.get_http_auth()),
         }
-        req = urllib2.Request(url, headers=headers)
-        r = urllib2.urlopen(req)
-        self.tips = json.loads(r.read())
+        result = Parent.GetRequest(url,headers)
+        self.tips = json.loads(result)
 
     def loadSettings(self):
         """
