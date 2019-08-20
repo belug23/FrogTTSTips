@@ -15,12 +15,20 @@
       "tooltip": "Read a Frog Tip in TTS",
       "group": "General"
   },
+  "voiceGender": {
+      "type": "dropdown",
+      "value": "Neutral",
+      "label": "TTS Voice gender",
+      "tooltip": "The gender used for the TTS",
+      "items": ["Neutral","Male","Female","Not Set"],
+      "group": "Core"
+  },
   "frogTipsDomain": {
       "type": "textbox",
       "value": "frog.tips",
       "label": "Frog tips api domain",
       "tooltip": "The website to download the frog tips from",
-      "group": "General"
+      "group": "Core"
   },
   "Permission": {
     "type": "dropdown",

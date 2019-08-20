@@ -7,7 +7,7 @@ import uuid
 import base64
 
 clr.AddReference('System.Speech')
-from System.Speech.Synthesis import SpeechSynthesizer # pylint: disable=all; noqa .net system
+from System.Speech.Synthesis import SpeechSynthesizer, VoiceGender # pylint: disable=all; noqa .net system
 
 
 class FrogTipsReader(object):
@@ -40,6 +40,10 @@ class FrogTipsReader(object):
 
     def setConfigs(self):
         self.loadSettings()
+
+        #Set the voice
+        gender_id = getattr(VoiceGender, self.settings['voiceGender'])
+        self.spk.SelectVoiceByHints(gender_id)
 
         # Set the true volume for streamlabs Chatbot
         self.volume = self.settings["volume"] / 100.0
@@ -100,6 +104,7 @@ class FrogTipsReader(object):
                 "permission": "Everyone",
                 "volume": 50.0,
 			    "costs": 100,
+                'voiceGender': 'Neutral',
                 "useCooldown": True,
                 "useCooldownMessages": True,
                 "cooldown": 60,
