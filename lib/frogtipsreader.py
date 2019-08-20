@@ -66,7 +66,7 @@ class FrogTipsReader(object):
         data = self.get_auth_data()
 
         # Post request
-        result = self.parent.PostRequest(url,headers,data,true)
+        result = self.parent.PostRequest(url, headers, data, True)
         # Decode and save API key
         response = json.loads(result)
         self.phrase = response['phrase']
@@ -81,7 +81,7 @@ class FrogTipsReader(object):
             'Accept': 'application/json',
             'Authorization': 'Basic {}'.format(self.get_http_auth()),
         }
-        result = self.parent.GetRequest(url,headers)
+        result = self.parent.GetRequest(url, headers)
         self.tips = json.loads(result)
 
     def loadSettings(self):
