@@ -10,7 +10,6 @@ clr.AddReference('System.Speech')
 from System.Speech.Synthesis import SpeechSynthesizer # pylint: disable=all; noqa .net system
 
 
-
 class FrogTipsReader(object):
     """ 
     Because I hate coding with only functions and using Global variables.

@@ -10,7 +10,7 @@ from frogtipsreader import FrogTipsReader # pylint: disable=all; noqa
 #---------------------------
 #   [Required] Script Information
 #---------------------------
-ScriptName = "Frog TTS Tips"
+ScriptName = FrogTipsReader.script_name
 Website = "https://github.com/belug23/"
 Description = "Use you currency to make the bot read frog tips in tts"
 Creator = "Belug"
