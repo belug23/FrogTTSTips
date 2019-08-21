@@ -173,8 +173,9 @@ class FrogTipsReader(object):
         if not self.tips:
             self.download_tips()
         tip = self.tips.pop()
-        self.spk.Speak(tip['tip'])
+        self.parent.RemovePoints(data.User, data.UserName, self.settings['costs'])
         self.setCoolDown(data, command)
+        self.spk.Speak(tip['tip'])
 
     def setCoolDown(self, data, command):
         if self.settings["useCooldown"]:
