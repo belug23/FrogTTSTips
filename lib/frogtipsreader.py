@@ -28,7 +28,6 @@ class FrogTipsReader(object):
         # self.tips_file = "tips.txt"
         # self.tips_file_path = os.path.join(self.base_path, self.tips_file)
         self.settings = {}
-        self.volume = 0.5
         self.parent = None
         self.spk = SpeechSynthesizer()
         self.uuid = str(uuid.uuid4())
@@ -44,9 +43,7 @@ class FrogTipsReader(object):
         #Set the voice
         gender_id = getattr(VoiceGender, self.settings['voiceGender'])
         self.spk.SelectVoiceByHints(gender_id)
-
-        # Set the true volume for streamlabs Chatbot
-        self.volume = self.settings["volume"] / 100.0
+        self.spk.Volume = self.settings["volume"]
 
         self.setupCredentials()
 
